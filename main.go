@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/ekokurniawann/gobd/pkg/product"
@@ -14,10 +13,14 @@ func main() {
 	storageProduct := storage.NewPsqlProduct(storage.Pool())
 	serviceProduct := product.NewService(storageProduct)
 
-	ms, err := serviceProduct.GetByID(1)
-	if err != nil {
-		log.Fatalf("product.GetProductByID: %v", err)
+	m := &product.Model{
+		ID:    0,
+		Name:  "Golang testing",
+		Price: 100,
 	}
 
-	fmt.Println(ms)
+	err := serviceProduct.Update(m)
+	if err != nil {
+		log.Fatalf("product.Update: %v", err)
+	}
 }

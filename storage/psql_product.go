@@ -22,6 +22,7 @@ const (
 	created_at, updated_at
 	FROM products`
 	psqlGetProductByID = psqlGetAllProduct + " WHERE id = $1"
+	psqlUpdateProduct  = `UPDATE products SET name = $1, observations = $2, price = $3, updated_at = $4 WHERE id = $5`
 )
 
 type psqlProduct struct {
@@ -106,4 +107,35 @@ func (p *psqlProduct) GetByID(id uint) (*product.Model, error) {
 	defer stmt.Close()
 
 	return scanRowProduct(stmt.QueryRow(id))
+}
+
+func (p *psqlProduct) Update(m *product.Model) error {
+	stmt, err := p.db.Prepare(psqlUpdateProduct)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	res, err := stmt.Exec(
+		m.Name,
+		stringToNull(m.Observations),
+		m.Price,
+		timeToNull(m.UpdatedAt),
+		m.ID,
+	)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("Produk dengan ID %d tidak ditemukan", m.ID)
+	}
+
+	fmt.Println("Produk berhasil diperbarui")
+	return nil
 }

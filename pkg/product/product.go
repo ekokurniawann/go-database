@@ -1,9 +1,14 @@
 package product
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
+)
+
+var (
+	ErrIDNotFound = errors.New("Produk tidak memiliki ID")
 )
 
 type Model struct {
@@ -38,6 +43,7 @@ type Storage interface {
 	Create(*Model) error
 	GetAll() (Models, error)
 	GetByID(uint) (*Model, error)
+	Update(*Model) error
 }
 
 type Service struct {
@@ -63,4 +69,13 @@ func (s *Service) GetAll() (Models, error) {
 
 func (s *Service) GetByID(id uint) (*Model, error) {
 	return s.storage.GetByID(id)
+}
+
+func (s *Service) Update(m *Model) error {
+	if m.ID == 0 {
+		return ErrIDNotFound
+	}
+	m.UpdatedAt = time.Now()
+
+	return s.storage.Update(m)
 }

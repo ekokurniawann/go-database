@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"sync"
+	"time"
 
 	"github.com/ekokurniawann/gobd/pkg/product"
 	_ "github.com/lib/pq"
@@ -70,4 +71,13 @@ func scanRowProduct(s scanner) (*product.Model, error) {
 	m.UpdatedAt = updatedAtNull.Time
 
 	return m, nil
+}
+
+func timeToNull(t time.Time) sql.NullTime {
+	null := sql.NullTime{Time: t}
+	if !null.Time.IsZero() {
+		null.Valid = true
+	}
+
+	return null
 }
