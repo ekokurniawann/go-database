@@ -6,6 +6,7 @@ import (
 	"log"
 	"sync"
 
+	"github.com/ekokurniawann/gobd/pkg/product"
 	_ "github.com/lib/pq"
 )
 
@@ -42,4 +43,31 @@ func stringToNull(s string) sql.NullString {
 	}
 
 	return null
+}
+
+type scanner interface {
+	Scan(dest ...any) error
+}
+
+func scanRowProduct(s scanner) (*product.Model, error) {
+	m := &product.Model{}
+	observationNull := sql.NullString{}
+	updatedAtNull := sql.NullTime{}
+
+	err := s.Scan(
+		&m.ID,
+		&m.Name,
+		&observationNull,
+		&m.Price,
+		&m.CreatedAt,
+		&updatedAtNull,
+	)
+	if err != nil {
+		return &product.Model{}, err
+	}
+
+	m.Observations = observationNull.String
+	m.UpdatedAt = updatedAtNull.Time
+
+	return m, nil
 }

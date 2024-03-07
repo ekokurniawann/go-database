@@ -18,6 +18,9 @@ const (
 		CONSTRAINT products_id_pk PRIMARY KEY (id) 
 	)`
 	psqlCreateProduct = `INSERT INTO products(name, observations, price, created_at) VALUES($1, $2, $3, $4) RETURNING id`
+	psqlGetAllProduct = `SELECT id, name, observations, price, 
+	created_at, updated_at
+	FROM products`
 )
 
 type psqlProduct struct {
@@ -63,4 +66,33 @@ func (p *psqlProduct) Create(m *product.Model) error {
 
 	fmt.Println("Produk berhasil dibuat")
 	return nil
+}
+
+func (p *psqlProduct) GetAll() (product.Models, error) {
+	stmt, err := p.db.Prepare(psqlGetAllProduct)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query()
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	ms := make(product.Models, 0)
+	for rows.Next() {
+		m, err := scanRowProduct(rows)
+		if err != nil {
+			return nil, err
+		}
+		ms = append(ms, m)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return ms, nil
 }
