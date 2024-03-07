@@ -13,13 +13,7 @@ func main() {
 	storageProduct := storage.NewPsqlProduct(storage.Pool())
 	serviceProduct := product.NewService(storageProduct)
 
-	m := &product.Model{
-		ID:    0,
-		Name:  "Golang testing",
-		Price: 100,
-	}
-
-	err := serviceProduct.Update(m)
+	err := serviceProduct.Delete(2)
 	if err != nil {
 		log.Fatalf("product.Update: %v", err)
 	}

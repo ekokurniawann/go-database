@@ -2,6 +2,7 @@ package storage
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/ekokurniawann/gobd/pkg/product"
@@ -23,6 +24,7 @@ const (
 	FROM products`
 	psqlGetProductByID = psqlGetAllProduct + " WHERE id = $1"
 	psqlUpdateProduct  = `UPDATE products SET name = $1, observations = $2, price = $3, updated_at = $4 WHERE id = $5`
+	psqlDeleteproduct  = `DELETE FROM products WHERE id = $1`
 )
 
 type psqlProduct struct {
@@ -137,5 +139,34 @@ func (p *psqlProduct) Update(m *product.Model) error {
 	}
 
 	fmt.Println("Produk berhasil diperbarui")
+	return nil
+}
+
+func (p *psqlProduct) Delete(id uint) error {
+	if id == 0 {
+		return errors.New("ID produk tidak valid")
+	}
+
+	stmt, err := p.db.Prepare(psqlDeleteproduct)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	result, err := stmt.Exec(id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return errors.New("Produk dengan ID tersebut tidak ditemukan")
+	}
+
+	fmt.Println("Produk berhasil dihapus")
 	return nil
 }
