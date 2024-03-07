@@ -3,17 +3,17 @@ package main
 import (
 	"log"
 
-	"github.com/ekokurniawann/gobd/pkg/invoiceheader"
+	"github.com/ekokurniawann/gobd/pkg/invoiceitem"
 	"github.com/ekokurniawann/gobd/storage"
 )
 
 func main() {
 	storage.ConnectPostgresDB()
 
-	storageInvoiceHeader := storage.NewPsqlInvoiceHeader(storage.Pool())
-	serviceInvoiceHeader := invoiceheader.NewService(storageInvoiceHeader)
+	storageInvoiceItem := storage.NewPsqlInvoiceItem(storage.Pool())
+	serviceInvoiceItem := invoiceitem.NewService(storageInvoiceItem)
 
-	if err := serviceInvoiceHeader.Migrate(); err != nil {
-		log.Fatalf("invoiceHeader.Migrate: %v", err)
+	if err := serviceInvoiceItem.Migrate(); err != nil {
+		log.Fatalf("invoiceItem.Migrate: %v", err)
 	}
 }
