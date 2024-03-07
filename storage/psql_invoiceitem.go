@@ -3,6 +3,8 @@ package storage
 import (
 	"database/sql"
 	"fmt"
+
+	"github.com/ekokurniawann/gobd/pkg/invoiceitem"
 )
 
 const (
@@ -16,6 +18,7 @@ const (
 		CONSTRAINT invoice_items_invoice_header_id_fk FOREIGN KEY (invoice_header_id) REFERENCES invoice_headers (id) ON UPDATE RESTRICT ON DELETE RESTRICT,
 		CONSTRAINT invoice_items_product_id_fk FOREIGN KEY (product_id) REFERENCES products (id) ON UPDATE RESTRICT ON DELETE RESTRICT
 	)`
+	psqlCreateInvoiceItem = `INSERT INTO invoice_items(invoice_header_id, product_id) VALUES($1, $2) RETURNING id, created_at`
 )
 
 type PsqlInvoiceItem struct {
@@ -39,5 +42,25 @@ func (p *PsqlInvoiceItem) Migrate() error {
 	}
 
 	fmt.Println("migrasi invoiceitem berhasil dijalankan")
+	return nil
+}
+
+func (p *PsqlInvoiceItem) CreateTranscation(tx *sql.Tx, headerID uint, ms invoiceitem.Models) error {
+	stmt, err := tx.Prepare(psqlCreateInvoiceItem)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	for _, item := range ms {
+		err = stmt.QueryRow(headerID, item.ProductID).Scan(
+			&item.ID,
+			&item.CreatedAt,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

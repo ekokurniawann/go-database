@@ -3,6 +3,8 @@ package storage
 import (
 	"database/sql"
 	"fmt"
+
+	"github.com/ekokurniawann/gobd/pkg/invoiceheader"
 )
 
 const (
@@ -13,6 +15,7 @@ const (
 		updated_at TIMESTAMP,
 		CONSTRAINT invoice_headers_id_pk PRIMARY KEY (id) 
 	)`
+	psqlCreateInvoiceHeader = `INSERT INTO invoice_headers(client) VALUES($1) RETURNING id, created_at`
 )
 
 type PsqlInvoiceHeader struct {
@@ -37,4 +40,14 @@ func (p *PsqlInvoiceHeader) Migrate() error {
 
 	fmt.Println("Migrasi invoiceHeader berhasil dijalankan")
 	return nil
+}
+
+func (p *PsqlInvoiceHeader) CreateTranscation(tx *sql.Tx, m *invoiceheader.Model) error {
+	stmt, err := tx.Prepare(psqlCreateInvoiceHeader)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	return stmt.QueryRow(m.Client).Scan(&m.ID, &m.CreatedAt)
 }

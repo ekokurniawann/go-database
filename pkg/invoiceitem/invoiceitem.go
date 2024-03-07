@@ -1,6 +1,7 @@
 package invoiceitem
 
 import (
+	"database/sql"
 	"time"
 )
 
@@ -16,6 +17,7 @@ type Models []*Model
 
 type Storage interface {
 	Migrate() error
+	CreateTranscation(*sql.Tx, uint, Models) error
 }
 
 type Service struct {
