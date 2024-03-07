@@ -3,6 +3,8 @@ package storage
 import (
 	"database/sql"
 	"fmt"
+
+	"github.com/ekokurniawann/gobd/pkg/product"
 )
 
 const (
@@ -15,6 +17,7 @@ const (
 		updated_at TIMESTAMP,
 		CONSTRAINT products_id_pk PRIMARY KEY (id) 
 	)`
+	psqlCreateProduct = `INSERT INTO products(name, observations, price, created_at) VALUES($1, $2, $3, $4) RETURNING id`
 )
 
 type psqlProduct struct {
@@ -38,5 +41,26 @@ func (p *psqlProduct) Migrate() error {
 	}
 
 	fmt.Println("Migrasi produk berhasil dijalankan")
+	return nil
+}
+
+func (p *psqlProduct) Create(m *product.Model) error {
+	stmt, err := p.db.Prepare(psqlCreateProduct)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	err = stmt.QueryRow(
+		m.Name,
+		stringToNull(m.Observations),
+		m.Price,
+		m.CreatedAt,
+	).Scan(&m.ID)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Produk berhasil dibuat")
 	return nil
 }
