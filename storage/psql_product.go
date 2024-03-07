@@ -21,6 +21,7 @@ const (
 	psqlGetAllProduct = `SELECT id, name, observations, price, 
 	created_at, updated_at
 	FROM products`
+	psqlGetProductByID = psqlGetAllProduct + " WHERE id = $1"
 )
 
 type psqlProduct struct {
@@ -95,4 +96,14 @@ func (p *psqlProduct) GetAll() (product.Models, error) {
 	}
 
 	return ms, nil
+}
+
+func (p *psqlProduct) GetByID(id uint) (*product.Model, error) {
+	stmt, err := p.db.Prepare(psqlGetProductByID)
+	if err != nil {
+		return &product.Model{}, err
+	}
+	defer stmt.Close()
+
+	return scanRowProduct(stmt.QueryRow(id))
 }

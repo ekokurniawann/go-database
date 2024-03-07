@@ -14,9 +14,9 @@ func main() {
 	storageProduct := storage.NewPsqlProduct(storage.Pool())
 	serviceProduct := product.NewService(storageProduct)
 
-	ms, err := serviceProduct.GetAll()
+	ms, err := serviceProduct.GetByID(1)
 	if err != nil {
-		log.Fatalf("product.GetAll: %v", err)
+		log.Fatalf("product.GetProductByID: %v", err)
 	}
 
 	fmt.Println(ms)
